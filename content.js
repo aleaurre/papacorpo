@@ -77,19 +77,63 @@ const SEL = {
   saveBtn: ['guardar', 'save'],
   // Para leer el perfil sin abrir modales:
   headlineRead: '.text-body-medium.break-words',
-  aboutRead: '#about ~ .display-flex .inline-show-more-text, section[data-section="summary"] .inline-show-more-text'
+  aboutRead: '#about ~ .display-flex .inline-show-more-text, section[data-section="summary"] .inline-show-more-text',
+  postContainers: 'main article, main div[data-urn*="activity"], main div[role="article"]'
 };
 
 // ============================================================================
 //  LEER (SCRAPE)
 // ============================================================================
+function cleanText(text) {
+  return (text || "").replace(/\s+/g, " ").trim();
+}
+
+function uniqueTexts(items) {
+  const seen = new Set();
+  return items.filter(item => {
+    const key = item.toLowerCase();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function extractPosts(limit = 5) {
+  const candidates = Array.from(document.querySelectorAll(SEL.postContainers));
+  const posts = [];
+
+  for (const node of candidates) {
+    const textNodes = Array.from(
+      node.querySelectorAll(
+        '.update-components-text, .feed-shared-update-v2__description, .feed-shared-inline-show-more-text, span[dir="ltr"]'
+      )
+    )
+      .map(el => cleanText(el.textContent))
+      .filter(Boolean);
+
+    const combined = cleanText(textNodes.join(" "));
+    if (combined.length < 80) continue;
+    posts.push(combined);
+    if (posts.length >= limit) break;
+  }
+
+  return uniqueTexts(posts);
+}
+
+function extractRawProfileText() {
+  const main = document.querySelector("main");
+  return cleanText(main?.innerText || document.body?.innerText || "").slice(0, 20000);
+}
+
 function scrape() {
   const h = document.querySelector(SEL.headlineRead);
   const a = document.querySelector(SEL.aboutRead);
+  const posts = extractPosts();
   return {
-    headline: h?.textContent?.trim() || "",
-    about: a?.textContent?.trim() || "",
-    posts: [] // TODO: levantar textos de posts del feed del perfil
+    headline: cleanText(h?.textContent) || "",
+    about: cleanText(a?.textContent) || "",
+    posts,
+    rawProfileText: extractRawProfileText()
   };
 }
 
