@@ -2,6 +2,7 @@
 
 const $ = (id) => document.getElementById(id);
 let activePersona = null;
+let lastPayload = null; // último personaje generado (texto + imágenes)
 
 // ---- Personas (chips) -------------------------------------------------------
 function renderPersonas() {
@@ -91,6 +92,7 @@ $("transform").onclick = async () => {
     ]);
 
     const payload = { ...text, ...images };
+    lastPayload = payload;
 
     // 3) Preview en el panel.
     renderPreview(payload);
@@ -98,15 +100,15 @@ $("transform").onclick = async () => {
     // 4) Cringe-o-meter sobre el headline nuevo.
     GeminiAPI.cringeScore(payload.headline).then(renderCringe).catch(() => {});
 
-    // 5) Aplicar al DOM (Track A).
-    status("Aplicando en LinkedIn…");
+    // 5) Overlay LOCAL seguro (solo lo ve la usuaria) + habilitar acciones reales.
+    status("Personaje listo. Previsualizando…");
     try {
-      await sendToPage({ type: "APPLY_TRANSFORM", payload });
-      status("✓ Listo. Mirá tu perfil.");
-      $("revert").hidden = false;
+      await sendToPage({ type: "APPLY_PREVIEW", payload });
+      status("✓ Preview aplicado. Revisalo y, si te gusta, aplicalo de verdad.");
     } catch (e) {
-      status("Preview generado. (El inyector de DOM todavía no responde — Track A.)", false);
+      status("Preview generado en el panel. (Abrí tu perfil de LinkedIn para verlo en página.)", false);
     }
+    $("commitRow").hidden = false;
   } catch (err) {
     status(err.message || String(err), true);
   } finally {
@@ -114,9 +116,40 @@ $("transform").onclick = async () => {
   }
 };
 
-$("revert").onclick = async () => {
-  try { await sendToPage({ type: "REVERT" }); status("Perfil restaurado."); $("revert").hidden = true; }
-  catch (e) { status(e.message, true); }
+// Aplicar DE VERDAD (automatiza la UI real de LinkedIn).
+$("applyReal").onclick = async () => {
+  if (!lastPayload) return;
+  if (!confirm("Esto cambia tu titular y Acerca de REALES, visibles para todos. ¿Seguir? (Se guarda tu original para deshacer.)")) return;
+  const btn = $("applyReal");
+  btn.disabled = true; btn.textContent = "Aplicando en LinkedIn…";
+  try {
+    const r = await sendToPage({ type: "APPLY_REAL", payload: lastPayload });
+    if (r?.ok) { status("✓ Perfil real actualizado. Lo ve todo el mundo."); $("restore").hidden = false; }
+    else status(r?.error || "No se pudo aplicar.", true);
+  } catch (e) { status(e.message, true); }
+  finally { btn.disabled = false; btn.textContent = "Aplicar de verdad en LinkedIn"; }
+};
+
+// Deshacer real (reescribe el snapshot).
+$("restore").onclick = async () => {
+  try {
+    const r = await sendToPage({ type: "RESTORE_REAL" });
+    if (r?.ok) { status("✓ Perfil original restaurado."); $("restore").hidden = true; }
+    else status(r?.error || "No había snapshot.", true);
+  } catch (e) { status(e.message, true); }
+};
+
+// Descargar foto + banner para subirlos a mano (LinkedIn bloquea la subida automática).
+$("download").onclick = () => {
+  if (!lastPayload) return;
+  const dl = (dataUrl, name) => {
+    if (!dataUrl) return;
+    const a = document.createElement("a");
+    a.href = dataUrl; a.download = name; a.click();
+  };
+  dl(lastPayload.pfpDataUrl, "foto-perfil.png");
+  setTimeout(() => dl(lastPayload.bannerDataUrl, "banner.png"), 300);
+  status("Descargadas. Subilas desde el editor de foto/banner de LinkedIn.");
 };
 
 // ---- Render del preview -----------------------------------------------------

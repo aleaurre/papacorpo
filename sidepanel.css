@@ -126,3 +126,8 @@ h1 {
   transition: width .6s cubic-bezier(.2,.8,.2,1);
 }
 .muted { color: var(--ink-soft); font-size: 12px; }
+
+/* Acciones reales */
+.cta.real { margin-top: 12px; background: var(--ink); color: var(--cream); border-color: var(--ink); }
+.cta.real:hover { background: #000; }
+.disclaimer { margin-top: 12px; line-height: 1.45; }
