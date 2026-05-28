@@ -188,13 +188,16 @@ $("download").onclick = () => {
 };
 
 // ---- Render del preview -----------------------------------------------------
+// sidepanel.js — Cambiá la función renderPreview
 function renderPreview(p) {
   $("preview").hidden = false;
+  // Si no hay dataUrl por el error 429, dejamos un fondo gris o el anterior
   if (p.bannerDataUrl) $("prevBanner").src = p.bannerDataUrl;
   if (p.pfpDataUrl) $("prevPfp").src = p.pfpDataUrl;
   $("prevHeadline").textContent = p.headline || "";
   $("prevAbout").textContent = p.about || "";
 }
+
 function renderCringe(c) {
   const score = Math.max(0, Math.min(100, c.score || 0));
   $("cringeFill").style.width = score + "%";
