@@ -5,7 +5,7 @@
 // Para el demo podés hardcodear DEFAULT_KEY abajo. OJO: en cliente la key queda
 // expuesta — en la versión real esto va detrás de un proxy. Para hackathon, ok.
 
-const DEFAULT_KEY = "AQ.Ab8RN6JhG5DPq23x05WvcbQYRpWDioKR6aosTIxPhFHnykR9iQ"; // <-- pegá tu API key de AI Studio acá para el demo, o cargala en el panel
+const DEFAULT_KEY = "AQ.Ab8RN6J-Kp-UKBK2ixB8yINMlwEEszy5MCwXyY2x5nZRMFBRSw"; // <-- pegá tu API key de AI Studio acá para el demo, o cargala en el panel
 
 // gemini.js
 const TEXT_MODEL = "gemini-2.5-flash";
