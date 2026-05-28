@@ -81,6 +81,36 @@ const SEL = {
   postContainers: 'main article, main div[data-urn*="activity"], main div[role="article"]'
 };
 
+// ----------------------------------------------------------------------------
+//  LOCALIZADORES ROBUSTOS (las clases de LinkedIn se ofuscan/cambian; en vez de
+//  depender de una sola clase, anclamos a estructura estable: el <h1> del nombre
+//  y el ancla #about, con varios fallbacks).
+// ----------------------------------------------------------------------------
+function findHeadlineEl() {
+  // El titular vive en la tarjeta de intro, justo debajo del <h1> con el nombre.
+  const h1 = document.querySelector("main h1");
+  if (h1) {
+    const card = h1.closest("section") || h1.parentElement?.parentElement || document;
+    const inCard = card.querySelector(".text-body-medium.break-words");
+    if (inCard) return inCard;
+  }
+  return document.querySelector(SEL.headlineRead);
+}
+
+function findAboutEl() {
+  // La sección "Acerca de" se ancla con #about; el texto está en el show-more.
+  const anchor = document.querySelector("#about");
+  const section = anchor?.closest("section") || anchor?.parentElement?.closest("section");
+  if (section) {
+    return (
+      section.querySelector('.inline-show-more-text span[aria-hidden="true"]') ||
+      section.querySelector(".inline-show-more-text") ||
+      section.querySelector('span[aria-hidden="true"]')
+    );
+  }
+  return document.querySelector(SEL.aboutRead);
+}
+
 // ============================================================================
 //  LEER (SCRAPE)
 // ============================================================================
@@ -126,8 +156,8 @@ function extractRawProfileText() {
 }
 
 function scrape() {
-  const h = document.querySelector(SEL.headlineRead);
-  const a = document.querySelector(SEL.aboutRead);
+  const h = findHeadlineEl();
+  const a = findAboutEl();
   const posts = extractPosts();
   return {
     headline: cleanText(h?.textContent) || "",
@@ -194,18 +224,27 @@ async function restoreReal() {
 // ============================================================================
 const ov = {};
 function applyPreview(p) {
-  const h = document.querySelector(SEL.headlineRead);
-  if (h && p.headline) { ov.headline ??= h.textContent; h.textContent = p.headline; }
-  const a = document.querySelector(SEL.aboutRead);
-  if (a && p.about) { ov.about ??= a.textContent; a.textContent = p.about; }
+  const h = findHeadlineEl();
+  const a = findAboutEl();
+  const applied = [];
+  if (h && p.headline) { ov.headline ??= h.textContent; ov.headlineEl = h; h.textContent = p.headline; applied.push("headline"); }
+  if (a && p.about)    { ov.about ??= a.textContent;    ov.aboutEl = a;    a.textContent = p.about;    applied.push("about"); }
+
+  // Si no encontramos NINGÚN destino, avisamos en vez de mentir "✓ aplicado".
+  if (applied.length === 0) {
+    return {
+      ok: false,
+      error: "No encontré el titular ni el 'Acerca de' en esta página. " +
+             "¿Estás en TU perfil (linkedin.com/in/…) con la sección 'Acerca de' visible?"
+    };
+  }
   flash();
-  return { ok: true };
+  return { ok: true, applied };
 }
 function clearPreview() {
-  const h = document.querySelector(SEL.headlineRead);
-  if (h && ov.headline != null) h.textContent = ov.headline;
-  const a = document.querySelector(SEL.aboutRead);
-  if (a && ov.about != null) a.textContent = ov.about;
+  if (ov.headlineEl && ov.headline != null) ov.headlineEl.textContent = ov.headline;
+  if (ov.aboutEl && ov.about != null) ov.aboutEl.textContent = ov.about;
+  ov.headline = ov.about = ov.headlineEl = ov.aboutEl = undefined;
   return { ok: true };
 }
 function flash() {

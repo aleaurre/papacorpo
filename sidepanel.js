@@ -112,8 +112,9 @@ $("transform").onclick = async () => {
     // 5) Overlay LOCAL seguro (solo lo ve la usuaria) + habilitar acciones reales.
     status("Personaje listo. Previsualizando…");
     try {
-      await sendToPage({ type: "APPLY_PREVIEW", payload });
-      status("✓ Preview aplicado. Revisalo y, si te gusta, aplicalo de verdad.");
+      const r = await sendToPage({ type: "APPLY_PREVIEW", payload });
+      if (r?.ok) status("✓ Preview aplicado en la página. Revisalo y, si te gusta, aplicalo de verdad.");
+      else status(r?.error || "No pude aplicar el preview en la página.", true);
     } catch (e) {
       status("Preview generado en el panel. (Abrí tu perfil de LinkedIn para verlo en página.)", false);
     }
