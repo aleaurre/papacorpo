@@ -66,18 +66,17 @@ function findByLabel(labels, scope = document) {
 //  SELECTORES  ⚠️ VERIFICAR EN TU PERFIL (LinkedIn en español)
 // ============================================================================
 const SEL = {
-  // Lápiz "Editar introducción" (abre el modal con titular + about resumido).
+  // Lápiz editar intro — mantener como estaba
   editIntroBtn: ['editar presentación', 'editar introducción', 'edit intro'],
-  // Dentro del modal de intro:
   headlineInput: 'input[id*="headline"], textarea[id*="headline"], #single-line-text-form-component-headline',
-  // El About largo suele tener su propio lápiz y un <textarea> grande.
   editAboutBtn: ['editar acerca de', 'editar extracto', 'edit about', 'edit summary'],
   aboutTextarea: 'textarea[id*="summary"], textarea[id*="about"], .ql-editor[contenteditable="true"]',
-  // Guardar (sirve para ambos modales).
   saveBtn: ['guardar', 'save'],
-  // Para leer el perfil sin abrir modales:
-  headlineRead: '.text-body-medium.break-words',
-  aboutRead: '#about ~ .display-flex .inline-show-more-text, section[data-section="summary"] .inline-show-more-text'
+
+  // ✅ SELECTORES REALES encontrados en tu perfil:
+  headlineRead: 'p.b2777cf9',
+  aboutRead: 'span._10c50dbc',
+  postsRead: 'span.f5fa6300'   // ← bonus: tus posts también
 };
 
 // ============================================================================
@@ -86,10 +85,18 @@ const SEL = {
 function scrape() {
   const h = document.querySelector(SEL.headlineRead);
   const a = document.querySelector(SEL.aboutRead);
+  
+  // Levantar posts (los primeros 3, para no saturar el prompt)
+  const postEls = document.querySelectorAll(SEL.postsRead);
+  const posts = Array.from(postEls)
+    .map(el => el.textContent.trim())
+    .filter(t => t.length > 40)  // filtrar ruido
+    .slice(0, 3);
+
   return {
     headline: h?.textContent?.trim() || "",
     about: a?.textContent?.trim() || "",
-    posts: [] // TODO: levantar textos de posts del feed del perfil
+    posts
   };
 }
 
