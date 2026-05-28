@@ -66,6 +66,7 @@ function setBusy(busy) {
 }
 
 // ---- Flujo principal --------------------------------------------------------
+
 $("transform").onclick = async () => {
   const custom = $("customPersona").value.trim();
   const personaKey = custom || activePersona;
@@ -94,16 +95,33 @@ $("transform").onclick = async () => {
     }
 
     // 2) IA en paralelo: texto + imágenes.
+    // sidepanel.js — Modificá el paso 2 dentro de $("transform").onclick
     status("La IA está armando tu personaje…");
-    const [text, images] = await Promise.all([
-      GeminiAPI.transformProfile(personaKey, scraped),
-      GeminiAPI.generatePersonaImages(personaKey)
-    ]);
+
+    let text;
+    let images = { pfpDataUrl: "", bannerDataUrl: "" };
+
+    try {
+      // Pedimos el texto (esencial)
+      text = await GeminiAPI.transformProfile(personaKey, scraped);
+    } catch (textErr) {
+      throw new Error("Error con el texto de Gemini: " + textErr.message);
+    }
+
+    try {
+      // Intentamos generar las imágenes, si falla por cuota no bloqueamos el flujo
+      images = await GeminiAPI.generatePersonaImages(personaKey);
+    } catch (imgErr) {
+      console.warn("No se pudieron generar las imágenes por cuota (429):", imgErr);
+      status("⚠️ Cuota de imagen agotada. Se aplicará solo el texto reescrito.");
+      // Esperamos 2 segundos para que el usuario llegue a leer la advertencia
+      await new Promise(r => setTimeout(r, 2000)); 
+    }
 
     const payload = { ...text, ...images };
     lastPayload = payload;
 
-    // 3) Preview en el panel.
+    // 3) Preview en el panel (manejará strings vacíos si falló la imagen)
     renderPreview(payload);
 
     // 4) Cringe-o-meter sobre el headline nuevo.

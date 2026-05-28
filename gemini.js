@@ -7,9 +7,10 @@
 
 const DEFAULT_KEY = ""; // <-- pegá tu API key de AI Studio acá para el demo, o cargala en el panel
 
-// Modelos. Bumpeá si tu cuenta tiene Gemini 3 flash de texto.
-const TEXT_MODEL = "gemini-2.5-flash";              // texto / reescritura
-const IMAGE_MODEL = "gemini-3.1-flash-image-preview"; // Nano Banana 2 (rápido, free tier ~500/día)
+// gemini.js
+const TEXT_MODEL = "gemini-2.5-flash";              
+// Cambiá el string por el modelo de Imagen estable de producción si el preview está saturado
+const IMAGE_MODEL = "imagen-3.0-generate-002"; 
 const BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
 async function getKey() {
