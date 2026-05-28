@@ -8,7 +8,7 @@
 const DEFAULT_KEY = "AQ.Ab8RN6JhG5DPq23x05WvcbQYRpWDioKR6aosTIxPhFHnykR9iQ"; // <-- pegá tu API key de AI Studio acá para el demo, o cargala en el panel
 
 // gemini.js
-const TEXT_MODEL = "gemini-2.5-flash";              
+const TEXT_MODEL = "gemini-1.5-flash";              
 // Cambiá el string por el modelo de Imagen estable de producción si el preview está saturado
 const IMAGE_MODEL = "imagen-3.0-generate-002"; 
 const BASE = "https://generativelanguage.googleapis.com/v1beta/models";
