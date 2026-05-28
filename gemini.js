@@ -1,16 +1,21 @@
 // gemini.js — TRACK B (IA). Corre en el contexto del side panel.
 // Expone window.GeminiAPI con: transformProfile, generateImage, cringeScore, PERSONAS.
+// *** MIGRADO: usa la API de Claude (Anthropic) en vez de Gemini. ***
 //
 // La API key se guarda en chrome.storage.local (campo en el side panel).
 // Para el demo podés hardcodear DEFAULT_KEY abajo. OJO: en cliente la key queda
 // expuesta — en la versión real esto va detrás de un proxy. Para hackathon, ok.
 
-const DEFAULT_KEY = ""; // <-- pegá tu API key de AI Studio acá para el demo, o cargala en el panel
+const DEFAULT_KEY = ""; // <-- pegá tu API key de Anthropic acá para el demo, o cargala en el panel
 
-// Modelos. Bumpeá si tu cuenta tiene Gemini 3 flash de texto.
-const TEXT_MODEL = "gemini-2.5-flash";              // texto / reescritura
-const IMAGE_MODEL = "gemini-3.1-flash-image-preview"; // Nano Banana 2 (rápido, free tier ~500/día)
-const BASE = "https://generativelanguage.googleapis.com/v1beta/models";
+const TEXT_MODEL = "claude-sonnet-4-5";
+const CLAUDE_BASE = "https://api.anthropic.com/v1/messages";
+const CLAUDE_HEADERS = (key) => ({
+  "Content-Type": "application/json",
+  "x-api-key": key,
+  "anthropic-version": "2023-06-01",
+  "anthropic-dangerous-direct-browser-access": "true"
+});
 
 async function getKey() {
   if (DEFAULT_KEY) return DEFAULT_KEY;
@@ -21,7 +26,6 @@ async function getKey() {
 
 // ---------------------------------------------------------------------------
 // PERSONAS: cada una define la voz del texto y el look de las imágenes.
-// Agregá las que quieras — el demo brilla con 4 o 5 bien distintas.
 // ---------------------------------------------------------------------------
 const PERSONAS = {
   papa_corpo: {
@@ -80,8 +84,29 @@ const PERSONAS = {
 };
 
 // ---------------------------------------------------------------------------
+// Helper: llamada base a la API de Claude.
+// ---------------------------------------------------------------------------
+async function claudeCall(key, prompt, temperature = 0.9) {
+  const res = await fetch(CLAUDE_BASE, {
+    method: "POST",
+    headers: CLAUDE_HEADERS(key),
+    body: JSON.stringify({
+      model: TEXT_MODEL,
+      max_tokens: 1000,
+      temperature,
+      messages: [{ role: "user", content: prompt }]
+    })
+  });
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Claude API ${res.status}: ${errText}`);
+  }
+  const data = await res.json();
+  return data?.content?.[0]?.text || "";
+}
+
+// ---------------------------------------------------------------------------
 // TEXTO: reescribe headline + about + posts en la voz de la persona.
-// Devuelve JSON estricto via responseMimeType.
 // ---------------------------------------------------------------------------
 async function transformProfile(personaKey, scraped) {
   const persona = PERSONAS[personaKey] || { label: personaKey, voice: personaKey };
@@ -97,27 +122,15 @@ async function transformProfile(personaKey, scraped) {
     `PERFIL ACTUAL (JSON):`,
     JSON.stringify(scraped, null, 2),
     ``,
-    `Devolvé SOLO este JSON:`,
+    `Devolvé SOLO este JSON (sin backticks, sin texto antes ni después):`,
     `{"headline": "<máx 220 caracteres>",`,
     ` "about": "<2 a 4 frases>",`,
     ` "posts": ["<reescritura del post 1>", "<post 2>", ...]}`,
     `Reescribí tantos posts como vengan en el input. Si no vienen posts, devolvé [].`
   ].join("\n");
 
-  const res = await fetch(`${BASE}/${TEXT_MODEL}:generateContent`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { responseMimeType: "application/json", temperature: 0.9 }
-    })
-  });
+  const raw = await claudeCall(key, prompt, 0.9);
 
-  if (!res.ok) throw new Error(`Gemini texto ${res.status}: ${await res.text()}`);
-  const data = await res.json();
-  const raw = data?.candidates?.[0]?.content?.parts?.map(p => p.text).join("") || "{}";
-
-  // Parseo defensivo: a veces igual mete texto alrededor.
   let parsed;
   try {
     parsed = JSON.parse(raw);
@@ -133,66 +146,39 @@ async function transformProfile(personaKey, scraped) {
 }
 
 // ---------------------------------------------------------------------------
-// IMAGEN: Nano Banana. Devuelve un data URL listo para <img src>.
+// IMAGEN: Claude no genera imágenes nativamente.
+// Devolvemos null y el panel maneja el caso (no muestra la imagen).
+// Si querés imágenes reales, integrá DALL·E, Stability AI, o Ideogram acá.
 // ---------------------------------------------------------------------------
-async function generateImage(promptText, { aspect = "1:1" } = {}) {
-  const key = await getKey();
-  const fullPrompt = `${promptText}. High quality, no text overlay, no watermark. Aspect ratio ${aspect}.`;
-
-  const res = await fetch(`${BASE}/${IMAGE_MODEL}:generateContent`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-    body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }] })
-  });
-
-  if (!res.ok) throw new Error(`Nano Banana ${res.status}: ${await res.text()}`);
-  const data = await res.json();
-  const parts = data?.candidates?.[0]?.content?.parts || [];
-  const img = parts.find(p => p.inlineData || p.inline_data);
-  const inline = img?.inlineData || img?.inline_data;
-  if (!inline) throw new Error("Nano Banana no devolvió imagen (puede ser filtro de contenido).");
-  const mime = inline.mimeType || inline.mime_type || "image/png";
-  return `data:${mime};base64,${inline.data}`;
+async function generateImage(_promptText, _opts = {}) {
+  // Placeholder: retorna null para que el panel simplemente no muestre imagen.
+  return null;
 }
 
-// Genera foto + banner para una persona en paralelo.
-async function generatePersonaImages(personaKey) {
-  const persona = PERSONAS[personaKey] || {};
-  const [pfpDataUrl, bannerDataUrl] = await Promise.all([
-    generateImage(persona.pfp || "professional headshot", { aspect: "1:1" }),
-    generateImage(persona.banner || "minimal corporate banner", { aspect: "4:1" })
-  ]);
-  return { pfpDataUrl, bannerDataUrl };
+async function generatePersonaImages(_personaKey) {
+  return { pfpDataUrl: null, bannerDataUrl: null };
 }
 
 // ---------------------------------------------------------------------------
-// CRINGE-O-METER: puntúa un borrador de 0 (humano) a 100 (gurú nivel dios).
+// CRINGE-O-METER
 // ---------------------------------------------------------------------------
 async function cringeScore(text) {
   if (!text || !text.trim()) return { score: 0, label: "Vacío", tip: "" };
   const key = await getKey();
   const prompt =
     `Puntuá qué tan "cringe de LinkedIn" es este texto, de 0 (humano y natural) ` +
-    `a 100 (gurú motivacional insoportable). Devolvé SOLO JSON: ` +
+    `a 100 (gurú motivacional insoportable). Devolvé SOLO JSON sin backticks ni texto extra: ` +
     `{"score": <0-100>, "label": "<2-3 palabras>", "tip": "<un consejo corto en español>"}.\n\nTEXTO:\n${text}`;
-  const res = await fetch(`${BASE}/${TEXT_MODEL}:generateContent`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { responseMimeType: "application/json", temperature: 0.4 }
-    })
-  });
-  if (!res.ok) throw new Error(`Cringe-o-meter ${res.status}`);
-  const data = await res.json();
-  const raw = data?.candidates?.[0]?.content?.parts?.map(p => p.text).join("") || "{}";
+  const raw = await claudeCall(key, prompt, 0.4);
   try { return JSON.parse(raw); }
-  catch { return { score: 50, label: "Indeterminado", tip: "" }; }
+  catch {
+    const m = raw.match(/\{[\s\S]*\}/);
+    return m ? JSON.parse(m[0]) : { score: 50, label: "Indeterminado", tip: "" };
+  }
 }
 
 // ---------------------------------------------------------------------------
 // COMPOSER: en UNA llamada devuelve reescritura + idea de imagen + cringe.
-// Eficiente para usar en vivo mientras la persona tipea.
 // ---------------------------------------------------------------------------
 async function composePost(personaKey, draft) {
   if (!draft || !draft.trim()) return null;
@@ -202,21 +188,11 @@ async function composePost(personaKey, draft) {
     `Sos editor de contenido para LinkedIn. Tomá este borrador y trabajalo en la VOZ ` +
     `"${persona.label}" (${persona.voice}). Mantené el idioma del borrador.\n\n` +
     `BORRADOR:\n${draft}\n\n` +
-    `Devolvé SOLO este JSON:\n` +
+    `Devolvé SOLO este JSON sin backticks ni texto extra:\n` +
     `{"rewrite": "<el post reescrito, listo para publicar>",\n` +
     ` "imageIdea": "<prompt en inglés para generar una imagen que acompañe el post>",\n` +
     ` "cringe": {"score": <0-100>, "label": "<2-3 palabras>", "tip": "<consejo corto en español>"}}`;
-  const res = await fetch(`${BASE}/${TEXT_MODEL}:generateContent`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { responseMimeType: "application/json", temperature: 0.85 }
-    })
-  });
-  if (!res.ok) throw new Error(`Composer ${res.status}`);
-  const data = await res.json();
-  const raw = data?.candidates?.[0]?.content?.parts?.map(p => p.text).join("") || "{}";
+  const raw = await claudeCall(key, prompt, 0.85);
   try { return JSON.parse(raw); }
   catch { const m = raw.match(/\{[\s\S]*\}/); return m ? JSON.parse(m[0]) : null; }
 }
