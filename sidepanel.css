@@ -1,14 +1,19 @@
 :root {
-  --cream: #f4f1ea;
-  --paper: #fbfaf6;
-  --ink: #16181d;
-  --ink-soft: #4a4d56;
-  --lime: #d8f23a;
-  --lime-deep: #b9d400;
-  --hot: #ff5a36;
-  --line: #e0dcd0;
+  --cream: #fff3d6;
+  --paper: #fffaf0;
+
+  --ink: #2b1a0e;
+  --ink-soft: #6b4a2f;
+
+  --lime: #f2b249;
+  --lime-deep: #d88c28;
+
+  --hot: #3f8cff;
+
+  --line: #e4c58f;
+
   --radius: 14px;
-  --shadow: 0 2px 0 var(--ink), 0 10px 24px -12px rgba(22,24,29,.4);
+  --shadow: 0 2px 0 var(--ink), 0 10px 24px -12px rgba(43, 26, 14, .45);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
