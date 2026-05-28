@@ -1,0 +1,128 @@
+:root {
+  --cream: #f4f1ea;
+  --paper: #fbfaf6;
+  --ink: #16181d;
+  --ink-soft: #4a4d56;
+  --lime: #d8f23a;
+  --lime-deep: #b9d400;
+  --hot: #ff5a36;
+  --line: #e0dcd0;
+  --radius: 14px;
+  --shadow: 0 2px 0 var(--ink), 0 10px 24px -12px rgba(22,24,29,.4);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: "Hanken Grotesk", sans-serif;
+  background:
+    radial-gradient(120% 60% at 100% 0%, rgba(216,242,58,.18), transparent 60%),
+    var(--cream);
+  color: var(--ink);
+  padding: 18px 16px 32px;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Header */
+.hd { margin-bottom: 18px; }
+.brand { display: flex; align-items: center; gap: 9px; }
+.dot {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--lime); border: 2px solid var(--ink);
+  box-shadow: 0 0 0 3px rgba(216,242,58,.35);
+}
+h1 {
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-weight: 800; font-size: 26px; letter-spacing: -.03em; line-height: 1;
+}
+.tag { color: var(--ink-soft); font-size: 13px; margin-top: 6px; }
+
+/* Key box */
+.keybox {
+  border: 1px solid var(--line); border-radius: 10px;
+  background: var(--paper); padding: 8px 11px; margin-bottom: 16px; font-size: 13px;
+}
+.keybox summary { cursor: pointer; color: var(--ink-soft); font-weight: 600; }
+.keybox input {
+  width: 100%; margin: 9px 0 7px; padding: 8px 10px;
+  border: 1px solid var(--line); border-radius: 8px; font-family: inherit; font-size: 13px;
+}
+
+/* Blocks */
+.block { margin-bottom: 18px; }
+.lbl {
+  display: block; font-size: 11px; font-weight: 600; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--ink-soft); margin-bottom: 9px;
+}
+
+/* Persona chips */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.chip {
+  font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+  padding: 8px 13px; border-radius: 999px;
+  border: 1.5px solid var(--ink); background: var(--paper); color: var(--ink);
+  transition: transform .12s ease, background .12s ease;
+}
+.chip:hover { transform: translateY(-1px); }
+.chip.active { background: var(--lime); box-shadow: var(--shadow); }
+
+.custom {
+  width: 100%; min-height: 56px; resize: vertical; font-family: inherit; font-size: 13px;
+  padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper);
+}
+
+/* Buttons */
+.cta {
+  width: 100%; font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; font-size: 16px;
+  padding: 14px; cursor: pointer; color: var(--ink);
+  background: var(--lime); border: 2px solid var(--ink); border-radius: var(--radius);
+  box-shadow: var(--shadow); transition: transform .1s ease;
+}
+.cta:hover { transform: translateY(-2px); }
+.cta:active { transform: translateY(0); }
+.cta:disabled { opacity: .55; cursor: wait; transform: none; }
+
+.ghost {
+  font-family: inherit; font-weight: 600; font-size: 13px; cursor: pointer;
+  padding: 7px 12px; background: transparent; color: var(--ink);
+  border: 1.5px solid var(--ink); border-radius: 9px;
+}
+.wide { width: 100%; margin-top: 10px; padding: 11px; }
+
+/* Status */
+.status {
+  margin: 14px 0; padding: 11px 13px; border-radius: 10px; font-size: 13px;
+  background: var(--paper); border: 1px dashed var(--line); color: var(--ink-soft);
+}
+.status.err { border-color: var(--hot); color: var(--hot); border-style: solid; }
+
+/* Preview */
+.preview { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); }
+.imgs { position: relative; margin-bottom: 36px; }
+.banner {
+  width: 100%; height: 90px; object-fit: cover; border-radius: 12px;
+  border: 1.5px solid var(--ink); background: var(--line); display: block;
+}
+.pfp {
+  position: absolute; left: 14px; bottom: -28px;
+  width: 64px; height: 64px; border-radius: 50%; object-fit: cover;
+  border: 3px solid var(--paper); box-shadow: 0 0 0 1.5px var(--ink); background: var(--line);
+}
+.headline { font-weight: 600; font-size: 15px; line-height: 1.35; margin-bottom: 7px; }
+.about { font-size: 13px; color: var(--ink-soft); line-height: 1.5; }
+
+/* Cringe-o-meter */
+.cringe { margin-top: 18px; }
+.cringe-top { display: flex; justify-content: space-between; align-items: baseline; }
+.cringe-label { font-weight: 700; font-size: 13px; }
+.meter {
+  height: 12px; border-radius: 999px; background: var(--paper);
+  border: 1.5px solid var(--ink); overflow: hidden; margin: 8px 0;
+}
+.fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--lime), var(--hot));
+  transition: width .6s cubic-bezier(.2,.8,.2,1);
+}
+.muted { color: var(--ink-soft); font-size: 12px; }

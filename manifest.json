@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Modo Corpo — Persona Studio",
+  "version": "0.1.0",
+  "description": "Elegí tu personaje de LinkedIn. La IA reescribe tu perfil y genera foto + banner coherentes con un click.",
+  "permissions": ["sidePanel", "activeTab", "scripting", "storage", "tabs"],
+  "host_permissions": [
+    "https://*.linkedin.com/*",
+    "https://generativelanguage.googleapis.com/*"
+  ],
+  "background": { "service_worker": "background.js" },
+  "action": { "default_title": "Abrir Modo Corpo" },
+  "side_panel": { "default_path": "sidepanel.html" },
+  "content_scripts": [
+    {
+      "matches": ["https://*.linkedin.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://generativelanguage.googleapis.com"
+  }
+}

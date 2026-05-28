@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="sidepanel.css" />
+</head>
+<body>
+  <header class="hd">
+    <div class="brand">
+      <span class="dot"></span>
+      <h1>Modo&nbsp;Corpo</h1>
+    </div>
+    <p class="tag">Elegí tu personaje. La IA hace el resto.</p>
+  </header>
+
+  <details class="keybox" id="keybox">
+    <summary>API key de Gemini</summary>
+    <input id="apiKey" type="password" placeholder="Pegá tu key de AI Studio" autocomplete="off" />
+    <button id="saveKey" class="ghost">Guardar</button>
+    <span id="keyState" class="muted"></span>
+  </details>
+
+  <section class="block">
+    <label class="lbl">1 · Personaje</label>
+    <div id="personas" class="chips"></div>
+    <textarea id="customPersona" class="custom" placeholder="…o describí tu propio concepto (ej: 'CTO pirata', 'astronauta de RRHH')"></textarea>
+  </section>
+
+  <button id="transform" class="cta">Transformar mi perfil</button>
+  <button id="revert" class="ghost wide" hidden>Volver al original</button>
+
+  <section id="status" class="status" hidden></section>
+
+  <section id="preview" class="block preview" hidden>
+    <label class="lbl">Preview</label>
+    <div class="imgs">
+      <img id="prevBanner" class="banner" alt="banner generado" />
+      <img id="prevPfp" class="pfp" alt="foto generada" />
+    </div>
+    <p id="prevHeadline" class="headline"></p>
+    <p id="prevAbout" class="about"></p>
+
+    <div class="cringe">
+      <div class="cringe-top">
+        <span class="lbl">Cringe-o-meter</span>
+        <span id="cringeLabel" class="cringe-label">—</span>
+      </div>
+      <div class="meter"><div id="cringeFill" class="fill"></div></div>
+      <p id="cringeTip" class="muted"></p>
+    </div>
+  </section>
+
+  <script src="gemini.js"></script>
+  <script src="sidepanel.js"></script>
+</body>
+</html>
