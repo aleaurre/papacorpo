@@ -30,13 +30,9 @@ body {
 }
 
 /* Header */
-.hd { margin-bottom: 18px; }
-.brand { display: flex; align-items: center; gap: 9px; }
-.dot {
-  width: 14px; height: 14px; border-radius: 50%;
-  background: var(--lime); border: 2px solid var(--ink);
-  box-shadow: 0 0 0 3px rgba(216,242,58,.35);
-}
+.hd { margin-bottom: 18px; text-align: center; }
+.logo { display: block; width: 72px; height: auto; margin: 0 auto 8px; }
+.brand { display: flex; align-items: center; justify-content: center; gap: 9px; }
 h1 {
   font-family: "Bricolage Grotesque", sans-serif;
   font-weight: 800; font-size: 26px; letter-spacing: -.03em; line-height: 1;

@@ -9,7 +9,21 @@
     "https://generativelanguage.googleapis.com/*"
   ],
   "background": { "service_worker": "background.js" },
-  "action": { "default_title": "Abrir Modo Corpo" },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_title": "Abrir Modo Corpo",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
   "side_panel": { "default_path": "sidepanel.html" },
   "content_scripts": [
     {
