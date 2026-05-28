@@ -6,7 +6,8 @@
   "permissions": ["sidePanel", "activeTab", "scripting", "storage", "tabs"],
   "host_permissions": [
     "https://*.linkedin.com/*",
-    "https://generativelanguage.googleapis.com/*"
+    "https://generativelanguage.googleapis.com/*",
+    "https://image.pollinations.ai/*"
   ],
   "background": { "service_worker": "background.js" },
   "icons": {
