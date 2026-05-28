@@ -190,10 +190,42 @@ async function cringeScore(text) {
   catch { return { score: 50, label: "Indeterminado", tip: "" }; }
 }
 
+// ---------------------------------------------------------------------------
+// COMPOSER: en UNA llamada devuelve reescritura + idea de imagen + cringe.
+// Eficiente para usar en vivo mientras la persona tipea.
+// ---------------------------------------------------------------------------
+async function composePost(personaKey, draft) {
+  if (!draft || !draft.trim()) return null;
+  const persona = PERSONAS[personaKey] || { label: "profesional", voice: "profesional claro y humano" };
+  const key = await getKey();
+  const prompt =
+    `Sos editor de contenido para LinkedIn. Tomá este borrador y trabajalo en la VOZ ` +
+    `"${persona.label}" (${persona.voice}). Mantené el idioma del borrador.\n\n` +
+    `BORRADOR:\n${draft}\n\n` +
+    `Devolvé SOLO este JSON:\n` +
+    `{"rewrite": "<el post reescrito, listo para publicar>",\n` +
+    ` "imageIdea": "<prompt en inglés para generar una imagen que acompañe el post>",\n` +
+    ` "cringe": {"score": <0-100>, "label": "<2-3 palabras>", "tip": "<consejo corto en español>"}}`;
+  const res = await fetch(`${BASE}/${TEXT_MODEL}:generateContent`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: "application/json", temperature: 0.85 }
+    })
+  });
+  if (!res.ok) throw new Error(`Composer ${res.status}`);
+  const data = await res.json();
+  const raw = data?.candidates?.[0]?.content?.parts?.map(p => p.text).join("") || "{}";
+  try { return JSON.parse(raw); }
+  catch { const m = raw.match(/\{[\s\S]*\}/); return m ? JSON.parse(m[0]) : null; }
+}
+
 window.GeminiAPI = {
   PERSONAS,
   transformProfile,
   generateImage,
   generatePersonaImages,
-  cringeScore
+  cringeScore,
+  composePost
 };

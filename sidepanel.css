@@ -131,3 +131,15 @@ h1 {
 .cta.real { margin-top: 12px; background: var(--ink); color: var(--cream); border-color: var(--ink); }
 .cta.real:hover { background: #000; }
 .disclaimer { margin-top: 12px; line-height: 1.45; }
+
+/* Config labels */
+.mini-lbl { display:block; font-size:11px; font-weight:600; color:var(--ink-soft); margin:9px 0 4px; }
+.keybox textarea { width:100%; min-height:44px; margin:0 0 7px; padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:13px; }
+
+/* Composer */
+.composer { margin-top:22px; padding-top:18px; border-top:1px solid var(--line); }
+.custom.tall { min-height:88px; }
+.rewrite { font-size:14px; line-height:1.5; background:var(--paper); border:1px solid var(--line); border-left:3px solid var(--lime-deep); border-radius:10px; padding:11px 13px; margin:6px 0 10px; white-space:pre-wrap; }
+.compose-actions { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:10px; }
+.idea { font-style:italic; margin:6px 0 10px; }
+#ideaImg { height:120px; margin-bottom:12px; }

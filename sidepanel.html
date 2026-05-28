@@ -18,8 +18,13 @@
   </header>
 
   <details class="keybox" id="keybox">
-    <summary>API key de Gemini</summary>
-    <input id="apiKey" type="password" placeholder="Pegá tu key de AI Studio" autocomplete="off" />
+    <summary>Configuración</summary>
+    <label class="mini-lbl">API key de Gemini</label>
+    <input id="apiKey" type="password" placeholder="Key de AI Studio" autocomplete="off" />
+    <label class="mini-lbl">Contacto de emergencia (1 email)</label>
+    <input id="emergencyContact" type="email" placeholder="alguien@que.te.frene" autocomplete="off" />
+    <label class="mini-lbl">Tus contactos (emails separados por coma)</label>
+    <textarea id="contactList" class="custom" placeholder="ma@mail.com, ex.jefe@mail.com, ..."></textarea>
     <button id="saveKey" class="ghost">Guardar</button>
     <span id="keyState" class="muted"></span>
   </details>
@@ -60,7 +65,34 @@
     </div>
   </section>
 
+  <section id="composer" class="block composer">
+    <label class="lbl">2 · Composer de posts</label>
+    <textarea id="draft" class="custom tall" placeholder="Escribí un borrador de post… (la IA lo reescribe en vivo en tu personaje)"></textarea>
+
+    <div id="composeOut" hidden>
+      <p class="mini-lbl">Reescrito en tu personaje</p>
+      <p id="rewrite" class="rewrite"></p>
+      <div class="compose-actions">
+        <button id="useRewrite" class="ghost">Usar este</button>
+        <button id="copyRewrite" class="ghost">Copiar</button>
+        <button id="genIdea" class="ghost">Generar imagen sugerida</button>
+      </div>
+      <p id="imageIdea" class="muted idea"></p>
+      <img id="ideaImg" class="banner" hidden alt="imagen sugerida" />
+
+      <div class="cringe">
+        <div class="cringe-top">
+          <span class="lbl">Cringe-o-meter</span>
+          <span id="cCringeLabel" class="cringe-label">—</span>
+        </div>
+        <div class="meter"><div id="cCringeFill" class="fill"></div></div>
+        <p id="cCringeTip" class="muted"></p>
+      </div>
+    </div>
+  </section>
+
   <script src="gemini.js"></script>
+  <script src="email.js"></script>
   <script src="sidepanel.js"></script>
 </body>
 </html>

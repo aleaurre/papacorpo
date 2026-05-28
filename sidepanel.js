@@ -3,6 +3,7 @@
 const $ = (id) => document.getElementById(id);
 let activePersona = null;
 let lastPayload = null; // último personaje generado (texto + imágenes)
+let lastPersonaLabel = "una versión renovada de mí";
 
 // ---- Personas (chips) -------------------------------------------------------
 function renderPersonas() {
@@ -23,11 +24,19 @@ function renderPersonas() {
 
 // ---- API key ----------------------------------------------------------------
 async function initKey() {
-  const { geminiKey } = await chrome.storage.local.get("geminiKey");
+  const { geminiKey, emergencyContact, contactList } = await chrome.storage.local.get(
+    ["geminiKey", "emergencyContact", "contactList"]
+  );
   if (geminiKey) { $("apiKey").value = geminiKey; $("keyState").textContent = "✓ guardada"; }
+  if (emergencyContact) $("emergencyContact").value = emergencyContact;
+  if (contactList) $("contactList").value = contactList;
 }
 $("saveKey").onclick = async () => {
-  await chrome.storage.local.set({ geminiKey: $("apiKey").value.trim() });
+  await chrome.storage.local.set({
+    geminiKey: $("apiKey").value.trim(),
+    emergencyContact: $("emergencyContact").value.trim(),
+    contactList: $("contactList").value.trim()
+  });
   $("keyState").textContent = "✓ guardada";
 };
 
@@ -122,10 +131,18 @@ $("applyReal").onclick = async () => {
   if (!confirm("Esto cambia tu titular y Acerca de REALES, visibles para todos. ¿Seguir? (Se guarda tu original para deshacer.)")) return;
   const btn = $("applyReal");
   btn.disabled = true; btn.textContent = "Aplicando en LinkedIn…";
+
+  // Al IR a cambiar el perfil → aviso al contacto de emergencia.
+  Mailer.notifyEmergencyContact().catch(() => {});
+
   try {
     const r = await sendToPage({ type: "APPLY_REAL", payload: lastPayload });
-    if (r?.ok) { status("✓ Perfil real actualizado. Lo ve todo el mundo."); $("restore").hidden = false; }
-    else status(r?.error || "No se pudo aplicar.", true);
+    if (r?.ok) {
+      status("✓ Perfil real actualizado. Lo ve todo el mundo.");
+      $("restore").hidden = false;
+      // Al CONCRETAR los cambios → borrador para avisar a todos tus contactos.
+      Mailer.announceNewProfile(lastPersonaLabel).catch(() => {});
+    } else status(r?.error || "No se pudo aplicar.", true);
   } catch (e) { status(e.message, true); }
   finally { btn.disabled = false; btn.textContent = "Aplicar de verdad en LinkedIn"; }
 };
@@ -166,6 +183,52 @@ function renderCringe(c) {
   $("cringeLabel").textContent = `${score} · ${c.label || ""}`;
   $("cringeTip").textContent = c.tip || "";
 }
+
+// ---- Composer en vivo --------------------------------------------------------
+let composeTimer = null;
+let lastCompose = null;
+
+$("draft").addEventListener("input", () => {
+  clearTimeout(composeTimer);
+  const draft = $("draft").value.trim();
+  if (!draft) { $("composeOut").hidden = true; return; }
+  composeTimer = setTimeout(runCompose, 700); // debounce
+});
+
+async function runCompose() {
+  const draft = $("draft").value.trim();
+  if (!draft) return;
+  const personaKey = $("customPersona").value.trim() || activePersona || "founder";
+  try {
+    const out = await GeminiAPI.composePost(personaKey, draft);
+    if (!out) return;
+    lastCompose = out;
+    $("composeOut").hidden = false;
+    $("rewrite").textContent = out.rewrite || "";
+    $("imageIdea").textContent = out.imageIdea ? `💡 Imagen sugerida: ${out.imageIdea}` : "";
+    const c = out.cringe || {};
+    const score = Math.max(0, Math.min(100, c.score || 0));
+    $("cCringeFill").style.width = score + "%";
+    $("cCringeLabel").textContent = `${score} · ${c.label || ""}`;
+    $("cCringeTip").textContent = c.tip || "";
+  } catch (e) { /* silencioso mientras tipea */ }
+}
+
+$("useRewrite").onclick = () => {
+  if (lastCompose?.rewrite) { $("draft").value = lastCompose.rewrite; $("composeOut").hidden = true; }
+};
+$("copyRewrite").onclick = async () => {
+  if (lastCompose?.rewrite) { await navigator.clipboard.writeText(lastCompose.rewrite); status("Copiado al portapapeles."); }
+};
+$("genIdea").onclick = async () => {
+  if (!lastCompose?.imageIdea) return;
+  const btn = $("genIdea"); btn.disabled = true; btn.textContent = "Generando…";
+  try {
+    const url = await GeminiAPI.generateImage(lastCompose.imageIdea, { aspect: "1:1" });
+    $("ideaImg").src = url; $("ideaImg").hidden = false;
+  } catch (e) { status(e.message, true); }
+  finally { btn.disabled = false; btn.textContent = "Generar imagen sugerida"; }
+};
 
 // ---- Init -------------------------------------------------------------------
 renderPersonas();
